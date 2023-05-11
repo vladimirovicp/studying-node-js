@@ -4,8 +4,11 @@ https://habr.com/ru/companies/ruvds/articles/424969/ \
 https://webformyself.com/node-js-fs-fajlovaya-sistema/ /
 
 ### Содержание
-* [Открытие файла](#fs.open)
-* [Получение информации о файлах](#fs.stat)
+* [Открытие файла | #fs.open](#fs.open)
+* [Получение информации о файлах | fs.stat](#fs.stat)
+* [Чтение файла | fs.read](#fs.read)
+
+
 
 ## Работа с файловыми дескрипторами в Node.js
 
@@ -14,8 +17,8 @@ https://webformyself.com/node-js-fs-fajlovaya-sistema/ /
 ```
 fs.open(path, flags[, mode], callback)
 ```
-Параметры\
-Ниже приводится описание используемых параметров —\
+**Параметры**\
+Ниже приводится описание используемых параметров —
 * path — это строка с именем файла, включая путь к нему.
 * flags — указывают режим работы с файлом, который нужно открыть. Все возможные значения приведены ниже.
 * mode — устанавливает режим файла (права доступа), но только если файл был создан. По умолчанию — 0666, чтение и запись.
@@ -64,5 +67,60 @@ fs.stat(path, callback)
 * stats.isSymbolicLink() — Возвращает true, если тип файла — символьная ссылка.
 * stats.isFIFO() — Возвращает true, если тип файла — FIFO.
 * stats.isSocket() — Возвращает true, если тип файла — сокет.
+**Пример**
+```
+var fs = require("fs");
+ 
+console.log("Going to get file info!");
+fs.stat('input.txt', function (err, stats) {
+   if (err) {
+       return console.error(err);
+   }
+   console.log(stats);
+   console.log("Got file info successfully!");
+   
+   // Check file type
+   console.log("isFile ? " + stats.isFile());
+   console.log("isDirectory ? " + stats.isDirectory());    
+});
+```
 
-
+### <a name="fs.read">Чтение файла</a>
+Синтаксис. Ниже приведен синтаксис одного из методов чтения из файла:
+```
+fs.read(fd, buffer, offset, length, position, callback)
+```
+Этот метод использует для чтения файла файловый дескриптор. Если вы хотите считать файл напрямую, с помощью имени файла, используйте другой метод. \
+**Параметры**
+Ниже приводится описание используемых параметров:
+* fd — это дескриптор файла, возвращаемый функцией fs.open().
+* buffer — это буфер, в который будут записаны данные.
+* offset — это смещение в буфере к позиции начала записи.
+* length — это целое число, определяющее количество прочитанных байтов.
+* position — Это целое число, указывающее, с какой позиции должно начинаться чтение файла. Если позиция равна нулю, данные будут считываться с текущей позиции файла.
+* callback — это функция обратного вызова, которая принимает три аргумента (err, bytesRead, buffer).
+**Пример**
+```
+var fs = require("fs");
+var buf = new Buffer(1024);
+ 
+console.log("Going to open an existing file");
+fs.open('input.txt', 'r+', function(err, fd) {
+   if (err) {
+      return console.error(err);
+   }
+   console.log("File opened successfully!");
+   console.log("Going to read the file");
+   fs.read(fd, buf, 0, buf.length, 0, function(err, bytes){
+      if (err){
+         console.log(err);
+      }
+      console.log(bytes + " bytes read");
+      
+      // Print only read bytes to avoid junk.
+      if(bytes > 0){
+         console.log(buf.slice(0, bytes).toString());
+      }
+   });
+});
+```
